@@ -1,0 +1,1 @@
+int evaluateMe = mynamespace::a;
