@@ -37,11 +37,27 @@
 using  namespace std;
 
 class ASTImportSource : /*public clang::ExternalASTSource,*/ public clang::ExternalSemaSource{
+
+  private:
+  cling::Interpreter *m_first_Interp;
+  cling::Interpreter *m_second_Interp;
+  clang::Sema *m_Sema;
+  std::map<clang::NamedDecl*, clang::NamedDecl*> m_Decl_map;
+  int aa;
   public:
-    ASTImportSource();
+    ASTImportSource(cling::Interpreter* interpreter_first,
+                    cling::Interpreter* interpreter_second)
+      {
+        m_first_Interp = interpreter_first;
+        m_second_Interp = interpreter_second;
+      }
     ~ASTImportSource();
     bool
     FindExternalVisibleDeclsByName(const clang::DeclContext *DC, clang::DeclarationName Name) override;
+    void InitializeSema(clang::Sema& S) override;
+
+    bool LookupUnqualified(clang::LookupResult &R, clang::Scope *S) override;
+    cling::Interpreter* getInterpreter() { return m_first_Interp; }
 };
 
 #endif //LLVM_ASTIMPORTSOURCE_H

@@ -1,13 +1,26 @@
-namespace mynamespace{
-  int a;
-  namespace mynamespace_embedded{
-    int c;
-  }
-  int b;
-}
-namespace mynamespace_embedded{
-  int c;
-}
-namespace mynamespace2{}
+int t;
 
-int evaluateMe = mynamespace::a;
+int p;
+
+class A{
+
+};
+namespace namespaceA{
+ class A{
+   public:
+    int a;
+ };
+ int u;
+
+ namespace mynamespace{
+  int c;
+  int b;
+ }
+}
+
+namespace namespaceB{
+  int b;
+  int bb;
+}
+
+//int evaluateMe = mynamespace::b;
