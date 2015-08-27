@@ -1,19 +1,19 @@
 
-t = 0;
-p = 8;
+int i;
 
-//namespaceA::mynamespace::c = 9;
-//namespaceB::b = 9;
-/*
-namespaceB::bb = 19343;
-namespaceA::u = 90;
 
-class B : public namespaceA::A {
-  
-  private: 
-    int a1;
-  
-  public:
-    B(); // mynamespace::a = 2; }
+void func() {
+	//t = 42;
+	//p = 8;
+	//B::t = 99;
+	A aclass;
+	aclass.a = 200;
+	
+	/*namespaceA::t = 43;
+	namespaceA:: A a;
+	a.a = 44;
+	using namespace namespaceA::mynamespace;
+	nnC = 45;
+	*/
+}
 
-};*/

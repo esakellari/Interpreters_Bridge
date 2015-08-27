@@ -1,26 +1,35 @@
-int t;
+#include <string>
+using namespace std;
 
+int t;
 int p;
 
 class A{
 
+  int private_member;
+  public:
+    int a;
 };
-namespace namespaceA{
- class A{
+
+namespace B{
+ int t;
+}
+namespace C{
+int t;
+ class D{
    public:
     int a;
  };
  int u;
 
- namespace mynamespace{
-  int c;
+ namespace E{
+  int nnC;
   int b;
  }
 }
 
-namespace namespaceB{
+namespace F{
   int b;
   int bb;
 }
 
-//int evaluateMe = mynamespace::b;

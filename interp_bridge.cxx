@@ -10,12 +10,6 @@ namespace clang {
   /// pending diagnostics, restore the suppress diagnostics flag, and restore
   /// the spell checking language options.
   ///
-
-  class a{
-
-
-
-  };
   class ParserStateRAII {
     private:
     Parser* P;
@@ -27,7 +21,6 @@ namespace clang {
     SourceLocation OldPrevTokLocation;
     unsigned short OldParenCount, OldBracketCount, OldBraceCount;
     unsigned OldTemplateParameterDepth;
-
 
     public:
     ParserStateRAII(Parser& p)
@@ -130,5 +123,19 @@ int main(int argc, char** argv) {
 
   interp_second.declare(R"code(#include "header_interpTwo.h" )code");
 
+/*  interp_second.declare(R"code(
+   int main(int, char*[]) {
+    t = 0;
+    p = 0;
+    B::t = 100;
+
+    return 0;
+   }
+   )code");*/
+
+  //interp_first.echo("&t");
+  //interp_second.echo("&t");
+
+  delete myExternalSource;
   return 0;
 }
