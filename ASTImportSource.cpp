@@ -10,6 +10,27 @@ void ASTImportSource::InitializeSema(clang::Sema& S) {
   m_Sema = &S;
 }
 
+bool ASTImportSource::GetCompleteDecl(clang::ASTContext *ast, clang::Decl *decl) {
+
+  clang::ExternalASTSource *ast_source = ast->getExternalSource();
+
+  if(!ast_source)
+    return false;
+
+  if (clang::TagDecl *tag_decl = llvm::dyn_cast<clang::TagDecl>(decl)) {
+    if (tag_decl->isCompleteDefinition())
+      return true;
+
+    if (!tag_decl->hasExternalLexicalStorage())
+      return false;
+
+    ast_source->CompleteType(tag_decl);
+
+    return !tag_decl->getTypeForDecl()->isIncompleteType();
+  }
+  return false;
+}
+
 bool ASTImportSource::LookupUnqualified(clang::LookupResult &R,
                                         clang::Scope *S) {
   return false; }
@@ -28,8 +49,8 @@ bool ASTImportSource::FindExternalVisibleDeclsByName(
   static clang::DeclContext * tunitDeclContext_Orig =
   clang::TranslationUnitDecl::castToDeclContext(tu_original);
 
-  static clang::DeclContext * tunitDeclContext_Temp =
-  clang::TranslationUnitDecl::castToDeclContext(tu_temporary);
+  //static clang::DeclContext * tunitDeclContext_Temp =
+  //clang::TranslationUnitDecl::castToDeclContext(tu_temporary);
 
   /*clang will call FindExternalVisibleDeclsByName with an
   IdentifierInfo valid for the second interpreter. Get the
@@ -65,35 +86,52 @@ bool ASTImportSource::FindExternalVisibleDeclsByName(
     tunitDeclContext_Orig->lookup(declNameOrig);
 
   if(lookup_result.data()){
-    clang::Decl *declResult = *lookup_result.data();
-    //clang::NamedDecl *namedDeclResult = *lookup_result.data();
+    //clang::Decl *declFrom = *lookup_result.data();
+    clang::Decl *declFrom = llvm::cast<clang::Decl>(*lookup_result.data());
     cout<< "Did lookup and found in Interpreter 1: " <<
     (*lookup_result.data())->getNameAsString() << endl;
+
+    //llvm::SmallVector<clang::NamedDecl*, 4> FoundDecls;
 
     clang::ASTContext &from_ASTContext = tu_original->getASTContext();
     clang::ASTContext &to_ASTContext = tu_temporary->getASTContext();
 
     const clang::FileSystemOptions systemOptions;
     clang::FileManager fm(systemOptions, nullptr);
-    clang::ASTImporter importer(to_ASTContext, fm, from_ASTContext, fm,false);
+    clang::ASTImporter importer(to_ASTContext, fm, from_ASTContext, fm,  false);
 
-    clang::Decl* importedDecl = importer.Import(declResult);
+    clang::Decl* importedDecl = importer.Import(declFrom);
+    if(!importedDecl)
+      cerr << "Error: Could not import " << declNameOrig.getAsString() << endl;
+    else {
+      clang::ASTContext *astContextP = &from_ASTContext;
+      GetCompleteDecl(astContextP, declFrom);
+      //clang::Decl* imported= importer.Imported(declFrom,importedDecl);
+      importer.ImportDefinition(declFrom);
 
-    // importer.Import((*lookup_result.data())->getDeclName());
+      std::vector<clang::NamedDecl*> declVector;
+      //clang::NamedDecl *namedDeclResult = *lookup_result.data();
+      declVector.push_back((clang::NamedDecl*)importedDecl);
+      llvm::ArrayRef<clang::NamedDecl*> FoundDecls(declVector);
+      SetExternalVisibleDeclsForName(DC, Name, FoundDecls);
+
+    }
+
     /***************************************************/
+    // importer.Import((*lookup_result.data())->getDeclName());
     //std::vector<clang::NamedDecl*> declVector;
-   // declVector.push_back((clang::NamedDecl*)importedDecl);
+   //
     // declVector.push_back(dynamic_cast<clang::NamedDecl*>(importedDecl));
-    //llvm::ArrayRef<clang::NamedDecl*> FoundDecls(declVector);
+    //
     // clang::DeclContext::lookup_result setExternalResult =
-    //SetExternalVisibleDeclsForName(DC, Name, FoundDecls);
+
     /***************************************************/
 
     //put the declaration context I found from the first interpreter
     //in my map to have it for the future.
     //Map<NamedDecl* /*second*/,NamedDecl* /*first*/>
-    m_Declarations_map[importedDecl]= declResult;
-    m_declName_map[declNameTemp] = declNameOrig;
+    //m_Declarations_map[importedDecl]= declFrom;
+    //m_declName_map[declNameTemp] = declNameOrig;
 
     return true;
   }

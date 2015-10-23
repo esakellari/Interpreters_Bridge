@@ -18,7 +18,7 @@
 #include "clang/Basic/IdentifierTable.h"
 #include "clang/Lex/Preprocessor.h"
 
-#include "clang/Parse/RAIIObjectsForParser.h"
+//#include "clang/Parse/RAIIObjectsForParser.h"
 #include "clang/Sema/CodeCompleteConsumer.h"
 #include "clang/Sema/CodeCompleteOptions.h"
 #include "llvm/ADT/SmallVector.h"
@@ -61,6 +61,8 @@ class ASTImportSource : /*public clang::ExternalASTSource,*/ public clang::Exter
 
     bool LookupUnqualified(clang::LookupResult &R, clang::Scope *S) override;
     cling::Interpreter* getInterpreter() { return m_first_Interp; }
+
+    bool GetCompleteDecl(clang::ASTContext *ast, clang::Decl *decl);
 };
 
 #endif //LLVM_ASTIMPORTSOURCE_H

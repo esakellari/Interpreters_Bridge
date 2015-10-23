@@ -1,4 +1,4 @@
-CXXFLAGS := $(shell llvm-config --cxxflags) -Wall
+CXXFLAGS := $(shell llvm-config  --cxxflags) -Wall
 LDFLAGS := $(shell llvm-config --ldflags)
 # To make binary symbols available to the interpreter:
 LDFLAGS += -Wl,--export-dynamic 

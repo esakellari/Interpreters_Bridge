@@ -1,66 +1,6 @@
 #include "ASTImportSource.h"
 #include <ctime>
 
-namespace clang {
-
-  ///\brief Cleanup Parser state after a failed lookup.
-  ///
-  /// After a failed lookup we need to discard the remaining unparsed input,
-  /// restore the original state of the incremental parsing flag, clear any
-  /// pending diagnostics, restore the suppress diagnostics flag, and restore
-  /// the spell checking language options.
-  ///
-  class ParserStateRAII {
-    private:
-    Parser* P;
-    Preprocessor& PP;
-    bool ResetIncrementalProcessing;
-    bool OldSuppressAllDiagnostics;
-    bool OldSpellChecking;
-    DestroyTemplateIdAnnotationsRAIIObj CleanupTemplateIds;
-    SourceLocation OldPrevTokLocation;
-    unsigned short OldParenCount, OldBracketCount, OldBraceCount;
-    unsigned OldTemplateParameterDepth;
-
-    public:
-    ParserStateRAII(Parser& p)
-      : P(&p), PP(p.getPreprocessor()),
-        ResetIncrementalProcessing(p.getPreprocessor()
-                                     .isIncrementalProcessingEnabled()),
-        OldSuppressAllDiagnostics(p.getPreprocessor().getDiagnostics()
-                                    .getSuppressAllDiagnostics()),
-        OldSpellChecking(p.getPreprocessor().getLangOpts().SpellChecking),
-        CleanupTemplateIds(p), OldPrevTokLocation(p.PrevTokLocation),
-        OldParenCount(p.ParenCount), OldBracketCount(p.BracketCount),
-        OldBraceCount(p.BraceCount),
-        OldTemplateParameterDepth(p.TemplateParameterDepth)
-    {
-    }
-
-    ~ParserStateRAII()
-    {
-      //
-      // Advance the parser to the end of the file, and pop the include stack.
-      //
-      // Note: Consuming the EOF token will pop the include stack.
-      //
-      P->SkipUntil(tok::eof);
-      PP.enableIncrementalProcessing(ResetIncrementalProcessing);
-      // Doesn't reset the diagnostic mappings
-      P->getActions().getDiagnostics().Reset(/*soft=*/true);
-      PP.getDiagnostics().setSuppressAllDiagnostics(OldSuppressAllDiagnostics);
-      const_cast<LangOptions&>(PP.getLangOpts()).SpellChecking =
-        OldSpellChecking;
-
-      P->PrevTokLocation = OldPrevTokLocation;
-      P->ParenCount = OldParenCount;
-      P->BracketCount = OldBracketCount;
-      P->BraceCount = OldBraceCount;
-      P->TemplateParameterDepth = OldTemplateParameterDepth;
-    }
-  };
-}
-
 int main(int argc, char** argv) {
 
   cling::Interpreter interp_first(argc, argv, LLVMRESDIR);
@@ -121,18 +61,21 @@ int main(int argc, char** argv) {
   //in external sources for the semantic information.
   global_DC_interp2->setHasExternalVisibleStorage();
 
-  interp_second.declare(R"code(#include "header_interpTwo.h" )code");
+  //interp_second.declare(R"code(#include "header_interpTwo.h" )code");
+  interp_first.echo("t+p");
+  interp_second.echo(" foo() ");
 
-/*  interp_second.declare(R"code(
+
+  /*interp_second.declare(R"code(
    int main(int, char*[]) {
-    t = 0;
-    p = 0;
-    B::t = 100;
-
+    //t = 0;
+    //p = 0;
+    //B::t = 100;
+    std::cout << "in main" << std::endl;
     return 0;
    }
-   )code");*/
-
+   )code");
+*/
   //interp_first.echo("&t");
   //interp_second.echo("&t");
 
