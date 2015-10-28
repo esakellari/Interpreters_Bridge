@@ -78,12 +78,16 @@ namespace F{
   int bb;
 }
 
-void foo(){
+extern "C"{
+ void foo(){
 
   std::cout << "Interp1::foo " << std::endl;
   
+  static int i = 0;
+  std::cout << ++i << std::endl;
+  
   //A a;
   //a.a = 9;
-
+ }
 }
 

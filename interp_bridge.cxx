@@ -7,8 +7,6 @@ int main(int argc, char** argv) {
   strcat(*argv, "-fsyntax-only");
   cling::Interpreter interp_second(argc, argv, LLVMRESDIR);
 
-  interp_first.declare(R"code(#include "header_interpOne.h")code");
-
   clang::TranslationUnitDecl *global_DC_interp1  =
     interp_first.getCI()->getASTContext().getTranslationUnitDecl();
 
@@ -45,8 +43,6 @@ int main(int argc, char** argv) {
   // clang::ASTReader* Reader = interp_second.getCI()->getModuleManager().get();
   //clang::ExternalSemaSource* externalSemaSrc = SemaRef.getExternalSource();
   //if (!externalSemaSrc || externalSemaSrc == Reader) {
-    // If the ExternalSemaSource is the PCH reader we still need to insert
-    // our listener.
     myExternalSource->InitializeSema(SemaRef);
     interp_second.getSema().addExternalSource(myExternalSource);
 
@@ -62,9 +58,18 @@ int main(int argc, char** argv) {
   global_DC_interp2->setHasExternalVisibleStorage();
 
   //interp_second.declare(R"code(#include "header_interpTwo.h" )code");
+  interp_first.declare(R"code(#include "header_interpOne.h")code");
   interp_first.echo("t+p");
-  interp_second.echo(" foo() ");
 
+  llvm::StringRef fooFun("foo");
+  void* address = interp_first.getAddressOfGlobal(fooFun);
+  interp_second.addSymbolPublic("foo", address);
+
+  interp_first.execute("foo()");
+  interp_second.execute("foo()");
+  interp_first.execute("foo()");
+  //cling::Interpreter::CompilationResult resu1 = interp_second.echo(" foo() ");
+  //cling::Interpreter::CompilationResult resu = interp_first.echo("foo()");
 
   /*interp_second.declare(R"code(
    int main(int, char*[]) {
