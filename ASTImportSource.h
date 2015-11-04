@@ -49,7 +49,6 @@ class ASTImportSource : /*public clang::ExternalASTSource,*/ public clang::Exter
       {
         m_first_Interp = interpreter_first;
         m_second_Interp = interpreter_second;
-
       }
     ~ASTImportSource();
     bool
