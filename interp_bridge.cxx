@@ -47,11 +47,10 @@ int main(int argc, char** argv) {
 
   I1.declare("int x=9;");
 
-  //I2.declare("#include <iostream>");
-  global_DC_interp2->setHasExternalVisibleStorage();
-  I2.declare(R"code(#include "I2.h" )code");
-
+  I2.declare("#include <iostream>");
   I1.declare("#include \"I1.h\"");
+  I2.declare(R"code(#include "I2.h" )code");
+  global_DC_interp2->setHasExternalVisibleStorage();
 
   clang::CompilerInstance* ci = I1.getCI();
   clang::DiagnosticsEngine &diags = ci->getSema().getDiagnostics();
@@ -61,11 +60,12 @@ int main(int argc, char** argv) {
   /*2*/I2.execute("foo_namespace::foo()");
   /*3*/I1.execute("foo_namespace::foo()");
 
-  I1.execute("bar"); /* ERROR: unresolved symbol*/
-  I2.execute("bar");
-
   I1.execute("foofoo()");
   I2.execute("foofoo()");
+
+  I2.execute("bar()");
+  I2.~Interpreter();
+  I1.execute("bar()"); /* ERROR: unresolved symbol*/
 
   return 0;
 }
