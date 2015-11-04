@@ -100,6 +100,10 @@ std::unique_ptr<TargetMachine>
   return std::move(TM);
 }
 
+void IncrementalExecutor::setExternalIncrementalExecutor(IncrementalExecutor *extIncr) {
+  m_externalIncrementalExecutor = extIncr;
+}
+
 void IncrementalExecutor::shuttingDown() {
   // No need to protect this access, since hopefully there is no concurrent
   // shutdown request.
@@ -149,8 +153,15 @@ IncrementalExecutor::NotifyLazyFunctionCreators(const std::string& mangled_name)
     if (ret)
       return ret;
   }
+  llvm::StringRef name(mangled_name);
+  //IncrementalExecutor::ExecutionResult executionResult =
+              //m_externalIncrementalExecutor->executeWrapper(name, res);
 
-  return HandleMissingFunction(mangled_name);
+  void *address;
+  if(m_externalIncrementalExecutor)
+   address = m_externalIncrementalExecutor->getAddressOfGlobal(name);
+  
+  return (address ? address : HandleMissingFunction(mangled_name));
 }
 
 #if 0
