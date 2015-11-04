@@ -27,15 +27,12 @@
 #include "llvm/Support/Allocator.h"
 #include "cling/Interpreter/Transaction.h"
 #include "clang/Sema/Sema.h"
-
 #include "clang/AST/Decl.h"
 #include "clang/AST/DeclBase.h"
 #include "clang/AST/ASTContext.h"
 #include "clang/AST/DeclarationName.h"
 #include "clang/AST/ASTConsumer.h"
 #include "clang/AST/ASTImporter.h"
-
-using  namespace std;
 
 class ASTImportSource : /*public clang::ExternalASTSource,*/ public clang::ExternalSemaSource{
 
@@ -56,10 +53,11 @@ class ASTImportSource : /*public clang::ExternalASTSource,*/ public clang::Exter
       }
     ~ASTImportSource();
     bool
-    FindExternalVisibleDeclsByName(const clang::DeclContext *DC, clang::DeclarationName Name) override;
-    void InitializeSema(clang::Sema& S) override;
+    FindExternalVisibleDeclsByName(const clang::DeclContext *DC, clang::DeclarationName Name);
+    void InitializeSema(clang::Sema& S);
+    void ForgetSema();
 
-    bool LookupUnqualified(clang::LookupResult &R, clang::Scope *S) override;
+    bool LookupUnqualified(clang::LookupResult &R, clang::Scope *S);
     cling::Interpreter* getInterpreter() { return m_first_Interp; }
 
     bool GetCompleteDecl(clang::ASTContext *ast, clang::Decl *decl);

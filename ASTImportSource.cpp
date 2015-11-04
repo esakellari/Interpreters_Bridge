@@ -10,6 +10,10 @@ void ASTImportSource::InitializeSema(clang::Sema& S) {
   m_Sema = &S;
 }
 
+void ASTImportSource::ForgetSema() {
+  m_Sema = nullptr;
+}
+
 bool ASTImportSource::GetCompleteDecl(clang::ASTContext *ast, clang::Decl *decl) {
 
   clang::ExternalASTSource *ast_source = ast->getExternalSource();
@@ -72,25 +76,36 @@ bool ASTImportSource::FindExternalVisibleDeclsByName(
   clang::IdentifierInfo &IIOrig = identsOrig.get(name);
   clang::DeclarationName declNameOrig(&IIOrig);
 
-  cout << "About to search in the map of the second interpreter "
+  std::cout << "About to search in the map of the second interpreter "
             "for the Decl Context : " << declNameOrig.getAsString()
-  << endl;
+  << std::endl;
+
   if (m_declName_map.find(declNameTemp) != m_declName_map.end()){
-    cout << "Found " << declNameTemp.getAsString() << " in the map." << endl;
+    std::cout << "Found " << declNameTemp.getAsString() << " in the map." << std::endl;
     return true;
   }
 
-  cout << "About to search in first interpreter for: "
-       << declNameOrig.getAsString() << endl;
+  //If you are about to search for the namespace "cling", don't
+  //if(Name.getAsString() == "cling")
+    //return true;
+
+  std::cout << "About to search in first interpreter for: "
+       << declNameOrig.getAsString() << std::endl;
   clang::DeclContext::lookup_result lookup_result =
     tunitDeclContext_Orig->lookup(declNameOrig);
 
   if(lookup_result.data()){
     //clang::Decl *declFrom = *lookup_result.data();
     clang::Decl *declFrom = llvm::cast<clang::Decl>(*lookup_result.data());
-    cout<< "Did lookup and found in Interpreter 1: " <<
-    (*lookup_result.data())->getNameAsString() << endl;
+    std::cout<< "Did lookup and found in Interpreter 1: " <<
+    (*lookup_result.data())->getNameAsString() << std::endl;
 
+    // TO DELETE
+    /*if(Name.getAsString() == "foo"){
+      llvm::StringRef fooFun("foo");
+      void* address = m_first_Interp->getAddressOfGlobal(fooFun);
+      m_second_Interp->addSymbolPublic("foo", address);
+    }*/
     //llvm::SmallVector<clang::NamedDecl*, 4> FoundDecls;
 
     clang::ASTContext &from_ASTContext = tu_original->getASTContext();
@@ -102,7 +117,7 @@ bool ASTImportSource::FindExternalVisibleDeclsByName(
 
     clang::Decl* importedDecl = importer.Import(declFrom);
     if(!importedDecl)
-      cerr << "Error: Could not import " << declNameOrig.getAsString() << endl;
+      std::cerr << "Error: Could not import " << declNameOrig.getAsString() << std::endl;
     else {
       clang::ASTContext *astContextP = &from_ASTContext;
       GetCompleteDecl(astContextP, declFrom);
@@ -114,7 +129,6 @@ bool ASTImportSource::FindExternalVisibleDeclsByName(
       declVector.push_back((clang::NamedDecl*)importedDecl);
       llvm::ArrayRef<clang::NamedDecl*> FoundDecls(declVector);
       SetExternalVisibleDeclsForName(DC, Name, FoundDecls);
-
     }
 
     /***************************************************/
@@ -124,19 +138,19 @@ bool ASTImportSource::FindExternalVisibleDeclsByName(
     // declVector.push_back(dynamic_cast<clang::NamedDecl*>(importedDecl));
     //
     // clang::DeclContext::lookup_result setExternalResult =
-
     /***************************************************/
 
-    //put the declaration context I found from the first interpreter
-    //in my map to have it for the future.
+    //Put the declaration context I found from the first interpreter
+    //in the map to have it for the future.
     //Map<NamedDecl* /*second*/,NamedDecl* /*first*/>
     //m_Declarations_map[importedDecl]= declFrom;
-    //m_declName_map[declNameTemp] = declNameOrig;
+    // m_declName_map[declNameTemp] = declNameOrig;
 
     return true;
   }
-  cout<< "Did not find " << declNameOrig.getAsString()
+
+  std::cout<< "Did not find " << declNameOrig.getAsString()
   << " in first interpreter"
-  << endl;
+  << std::endl;
   return false;
 }
