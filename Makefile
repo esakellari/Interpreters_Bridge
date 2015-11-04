@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ##===- Makefile --------------------------------------------*- Makefile -*-===##
 #
 #                     The Cling Interpreter
@@ -99,3 +100,18 @@ cscope.files:
 .PHONY: test report clean cscope.files
 
 endif
+=======
+CXXFLAGS := $(shell llvm-config  --cxxflags) -Wall
+LDFLAGS := $(shell llvm-config --ldflags)
+# To make binary symbols available to the interpreter:
+LDFLAGS += -Wl,--export-dynamic 
+SYSLIBS := $(shell llvm-config --system-libs)
+LLVMRESDIR := $(shell llvm-config --prefix)
+LIBS := -lclingInterpreter -lclingUtils -lclangFrontend -lclangSerialization -lclangDriver -lclangCodeGen -lclangParse -lclangSema -lclangEdit -lclangAnalysis -lclangAST -lclangLex -lclangBasic $(shell llvm-config --libs bitwriter mcjit orcjit native option ipo profiledata instrumentation objcarcopts) $(SYSLIBS)
+
+bridgedemo: interp_bridge.cxx ASTImportSource.cpp
+	$(CXX) -o $@ '-DLLVMRESDIR="$(LLVMRESDIR)"' $(CXXFLAGS) $^ $(LDFLAGS) $(LIBS)
+
+clean:
+	rm -f bridgedemo
+>>>>>>> f9337e060d271fed5530ebb7d509e6d3f68c68ee
