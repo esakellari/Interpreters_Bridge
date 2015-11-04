@@ -295,6 +295,10 @@ namespace cling {
 
     llvm::LLVMContext* getLLVMContext() { return m_LLVMContext.get(); }
 
+    IncrementalExecutor* getIncrementalExecutor() { return m_Executor.get(); }
+
+    void setExternalIncrementalExecutor(IncrementalExecutor* extIncr);
+
     const LookupHelper& getLookupHelper() const { return *m_LookupHelper; }
 
     const clang::Parser& getParser() const;

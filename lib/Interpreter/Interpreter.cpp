@@ -239,6 +239,10 @@ namespace cling {
     m_IncrParser.reset(0);
   }
 
+  void Interpreter::setExternalIncrementalExecutor(IncrementalExecutor *extIncr) {
+   m_Executor->setExternalIncrementalExecutor(extIncr);
+  }
+
   const char* Interpreter::getVersion() const {
     return ClingStringify(CLING_VERSION);
   }
