@@ -44,7 +44,9 @@ using namespace llvm;
 namespace cling {
 
 IncrementalExecutor::IncrementalExecutor(clang::DiagnosticsEngine& diags):
+  m_externalIncrementalExecutor(nullptr),
   m_CurrentAtExitModule(0)
+
 #if 0
   : m_Diags(diags)
 #endif
@@ -157,7 +159,7 @@ IncrementalExecutor::NotifyLazyFunctionCreators(const std::string& mangled_name)
   //IncrementalExecutor::ExecutionResult executionResult =
               //m_externalIncrementalExecutor->executeWrapper(name, res);
 
-  void *address;
+  void *address = nullptr;
   if(m_externalIncrementalExecutor)
    address = m_externalIncrementalExecutor->getAddressOfGlobal(name);
   
