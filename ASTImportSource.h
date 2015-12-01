@@ -9,6 +9,7 @@
 #include <sstream>
 #include <iostream>
 #include <map>
+#include <chrono>
 //#include "cling/Interpreter/InterpreterCallbacks.h"
 #include "cling/Interpreter/Value.h"
 #include "cling/Interpreter/Interpreter.h"
@@ -34,22 +35,19 @@
 #include "clang/AST/ASTConsumer.h"
 #include "clang/AST/ASTImporter.h"
 
-class ASTImportSource : /*public clang::ExternalASTSource,*/ public clang::ExternalSemaSource{
+class ASTImportSource : public clang::ExternalASTSource/*, public clang::ExternalSemaSource*/{
 
   private:
     cling::Interpreter *m_first_Interp;
     cling::Interpreter *m_second_Interp;
     clang::Sema *m_Sema;
-    std::map<clang::Decl*, clang::Decl*> m_Declarations_map;
+    std::map<clang::DeclContext*, clang::DeclContext*> m_DeclContexts_map;
+    std::map<clang::Decl*, clang::Decl*> m_Decls_map;
     std::map<clang::DeclarationName, clang::DeclarationName> m_declName_map;
-  //  clang::ASTImporter *m_Importer;
+
   public:
     ASTImportSource(cling::Interpreter* interpreter_first,
-                    cling::Interpreter* interpreter_second)
-      {
-        m_first_Interp = interpreter_first;
-        m_second_Interp = interpreter_second;
-      }
+                    cling::Interpreter* interpreter_second);
     ~ASTImportSource();
     bool
     FindExternalVisibleDeclsByName(const clang::DeclContext *DC, clang::DeclarationName Name);
