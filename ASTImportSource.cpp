@@ -85,16 +85,25 @@ bool ASTImportSource::FindExternalVisibleDeclsByName(
   if (!DC->isTranslationUnit()){
     //Search in the map of the stored Decl Contexts for this
     //namespace
-   /* if (m_DeclContexts_map.find(DC) != m_DeclContexts_map.end()){
+    if (m_DeclContexts_map.find(DC) != m_DeclContexts_map.end()){
       //If DC was found before and is already in the map,
       //then do the lookup using the stored pointer
-      clang::Decl* originalNamespace = m_DeclContexts_map.find(DC);
-      clang::DeclContext* originalDeclContext =
-        clang::Decl::castToDeclContext(originalNamespace);
+      //std::map<const clang::DeclContext*, const clang::DeclContext*>::iterator it;
+      const clang::DeclContext* originalDeclContext = m_DeclContexts_map.find(DC)->second;
+
       clang::DeclContext::lookup_result lookup_result =
         originalDeclContext->lookup(declNameI1);
-    }*/
+
+      if(lookup_result.data()){
+
+        std::cout << "Did lookup and found in the namespace cling of   I1: "
+        << (*lookup_result.data())->getNameAsString()
+        << std::endl;
+
+      }
+    }
   }
+  /*
   std::cout << "About to search in the map of I2 "
                "for the Name : "
             << declNameI1.getAsString()
@@ -106,9 +115,9 @@ bool ASTImportSource::FindExternalVisibleDeclsByName(
               << " in the map."
               << std::endl;
     return true;
-  }
+  }*/
 
-  std::cout << "About to search in I1 for:"
+  std::cout << "About to search in the Translation Unit of I1 for:"
             << declNameI1.getAsString()
             << std::endl;
 
@@ -117,7 +126,7 @@ bool ASTImportSource::FindExternalVisibleDeclsByName(
 
   if(lookup_result.data()){
 
-    std::cout << "Did lookup and found in I1: "
+    std::cout << "Did lookup and found in the Translation Unit of  I1: "
     << (*lookup_result.data())->getNameAsString()
     << std::endl;
 
@@ -135,10 +144,10 @@ bool ASTImportSource::FindExternalVisibleDeclsByName(
     // then it is a Decl Context.
     if ((*lookup_result.data())->getKind() == clang::Decl::Namespace){
 
-      clang::DeclContext* declContextFrom =
+      const clang::DeclContext* declContextFrom =
         llvm::cast<clang::DeclContext>(*lookup_result.data());
 
-      clang::DeclContext* importedDeclContext =
+      const clang::DeclContext* importedDeclContext =
         importer.ImportContext(declContextFrom);
 
       if(!importedDeclContext)
@@ -160,7 +169,7 @@ bool ASTImportSource::FindExternalVisibleDeclsByName(
         declVector.push_back((clang::NamedDecl*)importedDeclContext);
         llvm::ArrayRef<clang::NamedDecl*> FoundDecls(declVector);
 
-        SetExternalVisibleDeclsForName(DC, Name, FoundDecls);
+        //SetExternalVisibleDeclsForName(DC, Name, FoundDecls);
       }
     } else { //If this name is just a Decl.
       clang::Decl *declFrom = llvm::cast<clang::Decl>(*lookup_result.data());

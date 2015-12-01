@@ -41,7 +41,7 @@ class ASTImportSource : public clang::ExternalASTSource/*, public clang::Externa
     cling::Interpreter *m_first_Interp;
     cling::Interpreter *m_second_Interp;
     clang::Sema *m_Sema;
-    std::map<clang::DeclContext*, clang::DeclContext*> m_DeclContexts_map;
+    std::map<const clang::DeclContext*, const clang::DeclContext*> m_DeclContexts_map;
     std::map<clang::Decl*, clang::Decl*> m_Decls_map;
     std::map<clang::DeclarationName, clang::DeclarationName> m_declName_map;
 
