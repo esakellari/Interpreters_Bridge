@@ -40,8 +40,11 @@ class ASTImportSource : public clang::ExternalASTSource/*, public clang::Externa
   private:
     cling::Interpreter *m_first_Interp;
     cling::Interpreter *m_second_Interp;
+    const clang::TranslationUnitDecl *m_translationUnitI1;
+    const clang::TranslationUnitDecl *m_translationUnitI2;
+    clang::DeclContext * m_TUDeclContextI1;
     clang::Sema *m_Sema;
-    std::map<const clang::DeclContext*, const clang::DeclContext*> m_DeclContexts_map;
+    std::map<const clang::DeclContext*, clang::DeclContext*> m_DeclContexts_map;
     std::map<clang::Decl*, clang::Decl*> m_Decls_map;
     std::map<clang::DeclarationName, clang::DeclarationName> m_declName_map;
 
@@ -54,6 +57,11 @@ class ASTImportSource : public clang::ExternalASTSource/*, public clang::Externa
     void InitializeSema(clang::Sema& S);
     void ForgetSema();
 
+    bool Import(clang::DeclContext::lookup_result lookup_result,
+                clang::ASTContext& from_ASTContext,
+                clang::ASTContext& to_ASTContext,
+                const clang::DeclContext *DC,
+                clang::DeclarationName Name);
     bool LookupUnqualified(clang::LookupResult &R, clang::Scope *S);
     cling::Interpreter* getInterpreter() { return m_first_Interp; }
 

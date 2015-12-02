@@ -53,7 +53,6 @@ void memory_status(){
     }
     stat_in_smaps.close();
   }else std::cout << "Unable to open /proc/self/smaps file";
-
 }
 
 int main(int argc, char** argv) {
@@ -70,46 +69,41 @@ int main(int argc, char** argv) {
   std::chrono::duration<double, std::milli> elapsed_seconds;
 
   start = std::chrono::system_clock::now();
+  /*-----------------------I1 Creation----------------------------------*/
   cling::Interpreter I1(argc, argv, LLVMRESDIR);
+  /*--------------------------------------------------------------------*/
   end = std::chrono::system_clock::now();
   elapsed_seconds = end-start;
 
-  std::cout << "time for the creation of the I1: "
+  std::cout << "Time for the creation of the I1: "
   << elapsed_seconds.count() << "ms\n"
   << std::endl;
 
-  //std::cout << "Memory consumption before the creation of I2:" << std::endl;
-  //memory_status();
-
   cling::IncrementalExecutor* I1IncrExecutor = I1.getIncrementalExecutor();
   {
-
     start = std::chrono::system_clock::now();
-
     end = std::chrono::system_clock::now();
+
+    /* IgProf */
     if (dump_) {
       std::string heapfile = "heapfile-before.mp.gz";
       std::ofstream igprof_out;
       igprof_out.open(heapfile);
       dump_(heapfile.c_str());
     }
+
+    /*-----------------------I2 Creation----------------------------*/
     cling::Interpreter I2(&I1, argc, argv, LLVMRESDIR);
+    /*--------------------------------------------------------------*/
 
-   // char* buffer = new char[2000000];
-   // delete buffer;
-
-    if(I1IncrExecutor)
-      I2.setExternalIncrementalExecutor(I1IncrExecutor);
-
-    clang::TranslationUnitDecl *translationUnitDeclI1 =
-      I1.getCI()->getASTContext().getTranslationUnitDecl();
+    //clang::TranslationUnitDecl *translationUnitDeclI1 =
+      //I1.getCI()->getASTContext().getTranslationUnitDecl();
 
     clang::TranslationUnitDecl *translationUnitDeclI2 =
       I2.getCI()->getASTContext().getTranslationUnitDecl();
 
-    std::map < clang::TranslationUnitDecl * , clang::TranslationUnitDecl * > DC_map;
-
-    DC_map[translationUnitDeclI1] = translationUnitDeclI2;
+    if(I1IncrExecutor)
+      I2.setExternalIncrementalExecutor(I1IncrExecutor);
 
     cling::Interpreter *I1_p = &I1;
     cling::Interpreter *I2_p = &I2;
@@ -120,43 +114,49 @@ int main(int argc, char** argv) {
 
     //2. Set as an External AST source the AST source I created from the first interpreter
     //for the second interpreter.
-
-    //clang::Sema &SemaI2 = I2.getSema();
-    // clang::ASTReader* Reader = I2.getCI()->getModuleManager().get();
-    //clang::ExternalSemaSource* externalSemaSrc = SemaRef.getExternalSource();
-    //if (!externalSemaSrc || externalSemaSrc == Reader) {
     // myExternalSource->InitializeSema(SemaRef);
-
     // I2.getSema().addExternalSource(myExternalSource);
 
     clang::ASTContext& tuASTContext = translationUnitDeclI2->getASTContext();
     llvm::IntrusiveRefCntPtr <clang::ExternalASTSource>
       astContextExternalSource(myExternalSource);
-    //clang::ASTContext &Ctx = SemaI2.getASTContext();
     tuASTContext.ExternalSource.resetWithoutRelease();
     tuASTContext.setExternalSource(astContextExternalSource);
-    //}
 
     elapsed_seconds = end-start;
-
     std::cout << "time for the creation of the I2: "
     << elapsed_seconds.count() << "ms\n"
     << std::endl;
 
-  if (dump_) {
-    std::string heapfile = "heapfile-after.mp.gz";
-    std::ofstream igprof_out;
-    igprof_out.open(heapfile);
-    dump_(heapfile.c_str());
-  }
-
     //std::cout << "Memory consumption after the creation of I2:" << std::endl;
-   // memory_status();
+    // memory_status();
     translationUnitDeclI2->setHasExternalVisibleStorage();
+
+    /* IgProf */
+    if (dump_) {
+      std::string heapfile = "heapfile-after.mp.gz";
+      std::ofstream igprof_out;
+      igprof_out.open(heapfile);
+      dump_(heapfile.c_str());
+    }
+
+    /*---------------------------TESTS-------------------------*/
     //I1.declare("#include <iostream>");
    // I2.declare("#include <new>");
     //I2.execute("std::cout << \"Hello\" << std::endl;");
-    //I1.echo("int r");
+    I1.declare("template <class T>\n"
+                 "class mypair {\n"
+                 "    T values [2];\n"
+                 "  public:\n"
+                 "    mypair (T first, T second)\n"
+                 "    {\n"
+                 "      values[0]=first; values[1]=second;\n"
+                 "    }\n"
+                 "};");
+
+    I2.declare("mypair<int> *myobject;");
+
+    I1.echo("2");
     I2.echo("1");
 
     //I1.declare("#include <iostream>");
