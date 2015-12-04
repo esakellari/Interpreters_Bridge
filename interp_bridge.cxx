@@ -144,7 +144,7 @@ int main(int argc, char** argv) {
     //I1.declare("#include <iostream>");
    // I2.declare("#include <new>");
     //I2.execute("std::cout << \"Hello\" << std::endl;");
-    I1.declare("template <class T>\n"
+   /* I1.declare("template <class T>\n"
                  "class mypair {\n"
                  "    T values [2];\n"
                  "  public:\n"
@@ -156,16 +156,34 @@ int main(int argc, char** argv) {
 
     I2.declare("mypair<int> *myobject;");
 
-    I1.echo("2");
-    I2.echo("1");
+    I1.declare("#include <iostream>");
+    I1.declare("void hello(){ "
+                 "std::cout << \"Hello\" << std::endl; }");
 
+    I1.declare("extern \"C\"{"
+                  "void foo(){"
+                   "std::cout << \"Interp1::foo \" << std::endl;"
+                   "static int i = 0;"
+                   "std::cout << ++i << std::endl;"
+                  "}"
+                 "}");
+
+    I1.echo("2");
+    I1.execute("hello();");
+    I1.execute("foo();");
+    I2.execute("hello();");
+    I2.execute("foo();");
+    I1.execute("foo();");*/
+
+    I2.echo("3");
+
+    //I1.getCI()->getASTContext().getTranslationUnitDecl()->dump();
+    I2.getCI()->getASTContext().getTranslationUnitDecl()->dump();
+   // I2.echo("1");
     //I1.declare("#include <iostream>");
     //I2.declare("#include <iostream>");
-
     //I2.echo("gCling");
 
-    //3. And finally inform the second interpreter that we have to search
-    //in external sources for the semantic information.
 /*
     I1.declare("int x=9;");
 

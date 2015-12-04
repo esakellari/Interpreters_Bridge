@@ -88,7 +88,7 @@ bool ASTImportSource::Import(clang::DeclContext::lookup_result lookup_result,
         //And also put the declaration context I found from the first Interpreter
         //in the map of the second Interpreter to have it for the future.
         m_DeclContexts_map[importedDeclContext]= declContextFrom;
-        //m_declName_map[declNameI2] = declNameI1;
+       // m_DeclName_map[declNameI2] = declNameI1;
         importedDeclContext->setHasExternalVisibleStorage(true);
 
         //clang::ASTContext *astContextP = &from_ASTContext;
@@ -123,7 +123,7 @@ bool ASTImportSource::Import(clang::DeclContext::lookup_result lookup_result,
         << std::endl;
         //And also put the Decl I found from the first Interpreter
         //in the map of the second Interpreter to have it for the future.
-        //m_declName_map[declNameI2] = declNameI1;
+       // m_DeclName_map[declNameI2] = declNameI1;
         m_Decls_map[importedDecl]= declFrom;
 
         clang::ASTContext *astContextP = &from_ASTContext;
@@ -159,6 +159,10 @@ bool ASTImportSource::FindExternalVisibleDeclsByName(
            "DeclContext has no visible decls in storage");
 
   llvm::StringRef name(Name.getAsString());
+
+  std::cout << "About to search for the name: "
+  << Name.getAsString()
+  << std::endl;
 
   /* clang will call FindExternalVisibleDeclsByName with an
      IdentifierInfo valid for the second interpreter. Get the
