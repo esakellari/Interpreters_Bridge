@@ -97,7 +97,7 @@ int main(int argc, char** argv) {
     /*--------------------------------------------------------------*/
 
     //clang::TranslationUnitDecl *translationUnitDeclI1 =
-      //I1.getCI()->getASTContext().getTranslationUnitDecl();
+    //I1.getCI()->getASTContext().getTranslationUnitDecl();
 
     clang::TranslationUnitDecl *translationUnitDeclI2 =
       I2.getCI()->getASTContext().getTranslationUnitDecl();
@@ -141,45 +141,56 @@ int main(int argc, char** argv) {
     }
 
     /*---------------------------TESTS-------------------------*/
-    //I1.declare("#include <iostream>");
-   // I2.declare("#include <new>");
+    // I2.declare("#include <new>");
     //I2.execute("std::cout << \"Hello\" << std::endl;");
-   /* I1.declare("template <class T>\n"
-                 "class mypair {\n"
-                 "    T values [2];\n"
-                 "  public:\n"
-                 "    mypair (T first, T second)\n"
-                 "    {\n"
-                 "      values[0]=first; values[1]=second;\n"
-                 "    }\n"
-                 "};");
+  /*  I1.declare("template <class T>\n"
+                  "class mypair {\n"
+                  "    T values [2];\n"
+                  "  public:\n"
+                  "    mypair (T first, T second)\n"
+                  "    {\n"
+                  "      values[0]=first; values[1]=second;\n"
+                  "    }\n"
+                  "};");
 
-    I2.declare("mypair<int> *myobject;");
+     I2.declare("mypair<int> *myobject;");
 
-    I1.declare("#include <iostream>");
-    I1.declare("void hello(){ "
-                 "std::cout << \"Hello\" << std::endl; }");
+     I1.declare("#include <iostream>");
+     I1.declare("void hello(){ "
+                  "std::cout << \"Hello I1!\" << std::endl; }");
 
-    I1.declare("extern \"C\"{"
-                  "void foo(){"
-                   "std::cout << \"Interp1::foo \" << std::endl;"
-                   "static int i = 0;"
-                   "std::cout << ++i << std::endl;"
-                  "}"
-                 "}");
+     I1.declare("extern \"C\"{"
+                   "void foo(){"
+                    "std::cout << \"Interp1::foo \" << std::endl;"
+                    "static int i = 0;"
+                    "std::cout << ++i << std::endl;"
+                   "}"
+                  "}");
 
-    I1.echo("2");
-    I1.execute("hello();");
-    I1.execute("foo();");
-    I2.execute("hello();");
-    I2.execute("foo();");
-    I1.execute("foo();");*/
+     I1.echo("2");
+     I1.execute("hello();");
+     I1.execute("foo();");
+     I2.execute("hello();");
+     I2.execute("foo();");
+     I1.execute("foo();");
+
+*/  I1.declare("#include <iostream>");
+    I1.declare("void hello(){ std::cout << \"hello(void)\" << std::endl; }");
+    I1.declare("void hello(int i){ std::cout << \"hello(int)\" << std::endl; }");
+    I1.execute("hello(8999)");
+    I2.execute("hello()");
+    I2.execute("hello(8);");
+
+    //I2.execute("hello(9);");
+    I1.echo("44");
+    //I2.execute("hello(1);");
 
     I2.echo("3");
 
     //I1.getCI()->getASTContext().getTranslationUnitDecl()->dump();
-    I2.getCI()->getASTContext().getTranslationUnitDecl()->dump();
-   // I2.echo("1");
+    //I2.getCI()->getASTContext().getTranslationUnitDecl()->dump();
+   // I2.getCI()->getASTContext().dum
+    // I2.echo("1");
     //I1.declare("#include <iostream>");
     //I2.declare("#include <iostream>");
     //I2.echo("gCling");
@@ -206,9 +217,10 @@ int main(int argc, char** argv) {
     I1.execute("bar()"); /* ERROR: unresolved symbol // defined in I2 */
     //I2.~Interpreter();*/
   } // I2 destructed here
- // I1.execute("foo_namespace::foo()"); /* something I2 was calling, but is only defined in I1 */
- // I1.execute("bar()"); /* ERROR: unresolved symbol // defined in I2 */
- // I1.execute("foofoo()"); /* a function defined both in I1 and I2*/
+  // I1.execute("foo_namespace::foo()"); /* something I2 was calling, but is only defined in I1 */
+  // I1.execute("bar()"); /* ERROR: unresolved symbol // defined in I2 */
+  // I1.execute("foofoo()"); /* a function defined both in I1 and I2*/
 
   return 0;
 }
+

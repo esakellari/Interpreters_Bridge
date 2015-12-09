@@ -45,8 +45,11 @@ class ASTImportSource : public clang::ExternalASTSource/*, public clang::Externa
     clang::DeclContext * m_TUDeclContextI1;
     clang::Sema *m_Sema;
     std::map<const clang::DeclContext*, clang::DeclContext*> m_DeclContexts_map;
-    std::map<clang::Decl*, clang::Decl*> m_Decls_map;
-    std::map<clang::DeclarationName, clang::DeclarationName> m_DeclName_map;
+    //std::map<clang::Decl*, clang::Decl*> m_Decls_map;
+    std::map<std::string, clang::DeclarationName> m_DeclName_map;
+    std::map<std::string, std::pair<clang::DeclContext*, clang::DeclContext*>>
+      m_DeclContextsNames_map;
+    std::map<std::string, std::pair<clang::Decl*, clang::Decl*>> m_Decls_map;
 
   public:
     ASTImportSource(cling::Interpreter* interpreter_first,
