@@ -54,6 +54,14 @@ bool ASTImportSource::Import(clang::DeclContext::lookup_result lookup_result,
                              const clang::DeclContext *DC,
                              clang::DeclarationName Name){
 
+  if(lookup_result.empty()) {
+    std::cout << "Did not find "
+    << Name.getAsString()
+    << " in first interpreter"
+    << std::endl;
+    return false;
+  }
+
   //Prepare to import the Decl(Context)  we found in the
   //second interpreter
   const clang::FileSystemOptions systemOptions;
@@ -208,11 +216,6 @@ bool ASTImportSource::FindExternalVisibleDeclsByName(const clang::DeclContext *D
   clang::IdentifierInfo &IdentifierInfoI1 = identsI1.get(name);
   clang::DeclarationName declNameI1(&IdentifierInfoI1);
 
-  //first look if we have already imported this name before
-  /*if (m_DeclName_map.find(Name.getAsString()) != m_DeclName_map.end()) {
-    std::cout << "We have already imported this Decl (Context) before!"
-    << std::endl;
-  }*/
   if (m_DeclContextsNames_map.find(Name.getAsString()) != m_DeclContextsNames_map.end()) {
     std::cout << "We have already imported this Decl (Context) before!"
     << std::endl;
@@ -223,76 +226,50 @@ bool ASTImportSource::FindExternalVisibleDeclsByName(const clang::DeclContext *D
     return true;
   }
 
+  clang::DeclContext::lookup_result lookup_result;
   //If we are not looking for this Name in the Translation Unit
   //but instead inside a namespace
   if (!DC->isTranslationUnit()){
+
     //Search in the map of the stored Decl Contexts for this
     //namespace
     if (m_DeclContexts_map.find(DC) != m_DeclContexts_map.end()){
       //If DC was found before and is already in the map,
       //then do the lookup using the stored pointer
-      //std::map<const clang::DeclContext*, const clang::DeclContext*>::iterator it;
-       clang::DeclContext* originalDeclContext = m_DeclContexts_map.find(DC)->second;
+      clang::DeclContext* originalDeclContext = m_DeclContexts_map.find(DC)->second;
 
-      clang::DeclContext::lookup_result lookup_result =
-        originalDeclContext->lookup(declNameI1);
+      clang::Decl *fromDeclContext = clang::Decl::castFromDeclContext(originalDeclContext);
+      clang::ASTContext &from_ASTContext = fromDeclContext->getASTContext();
 
-      //If we found something
-      if(!lookup_result.empty()) {
+      clang::Decl *toDeclContext = clang::Decl::castFromDeclContext(DC);
+      clang::ASTContext &to_ASTContext = toDeclContext->getASTContext();
 
-        // const clang::NamedDecl* namedNamespace = const_cast<const clang::NamedDecl*>(DC);
-
-        std::cout << "Did lookup and found in the namespace "
-        << "of I1: "
-        << (*lookup_result.data())->getNameAsString()
-        << std::endl;
-
-        clang::Decl *fromDecl = clang::Decl::castFromDeclContext(originalDeclContext);
-        clang::ASTContext &from_ASTContext = fromDecl->getASTContext();
-
-        clang::Decl *toDecl = clang::Decl::castFromDeclContext(DC);
-        clang::ASTContext &to_ASTContext = toDecl->getASTContext();
-
-        //Do the import
-        if (Import(lookup_result, from_ASTContext, to_ASTContext, DC, Name)) {
-          //And also put the Decl I found from the first Interpreter
-          //in the map of the second Interpreter to have it for the future.
-          m_DeclName_map[Name.getAsString()] = declNameI1;
-          return true;
-        }
-      }
-    }
-  }
-  else { // Otherwise search in the Translation Unit
-    std::cout << "About to search in the Translation Unit of I1 for:"
-    << declNameI1.getAsString()
-    << std::endl;
-
-    clang::DeclContext::lookup_result lookup_result =
-      m_TUDeclContextI1->lookup(declNameI1);
-
-    if(!lookup_result.empty()){
-
-      std::cout << "Did lookup and found in the Translation Unit of  I1: "
-      << (*lookup_result.data())->getNameAsString()
-      << std::endl;
-
-      clang::ASTContext& from_ASTContext = m_translationUnitI1->getASTContext();
-      clang::ASTContext& to_ASTContext = m_translationUnitI2->getASTContext();
-
+      lookup_result = originalDeclContext->lookup(declNameI1);
       //Do the import
-      if ( Import(lookup_result, from_ASTContext, to_ASTContext, DC, Name)) {
+      if (Import(lookup_result, from_ASTContext, to_ASTContext, DC, Name)) {
         //And also put the Decl I found from the first Interpreter
         //in the map of the second Interpreter to have it for the future.
         m_DeclName_map[Name.getAsString()] = declNameI1;
         return true;
       }
-    } else {
-      std::cout << "Did not find "
-      << declNameI1.getAsString()
-      << " in first interpreter"
-      << std::endl;
+    }
+  } else { // Otherwise search in the Translation Unit
+    std::cout << "About to search in the Translation Unit of I1 for:"
+    << declNameI1.getAsString()
+    << std::endl;
+
+    clang::ASTContext &from_ASTContext = m_translationUnitI1->getASTContext();
+    clang::ASTContext &to_ASTContext = m_translationUnitI2->getASTContext();
+
+    lookup_result = m_TUDeclContextI1->lookup(declNameI1);
+    //Do the import
+    if (Import(lookup_result, from_ASTContext, to_ASTContext, DC, Name)) {
+      //And also put the Decl I found from the first Interpreter
+      //in the map of the second Interpreter to have it for the future.
+      m_DeclName_map[Name.getAsString()] = declNameI1;
+      return true;
     }
   }
+
   return false;
 }
