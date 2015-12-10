@@ -10,8 +10,6 @@ ASTImportSource::ASTImportSource(cling::Interpreter* interpreter_first,
   m_TUDeclContextI1 = clang::TranslationUnitDecl::castToDeclContext(m_translationUnitI1);
 }
 
-ASTImportSource::~ASTImportSource() { }
-
 void ASTImportSource::InitializeSema(clang::Sema& S) {
   m_Sema = &S;
 }
@@ -20,16 +18,83 @@ void ASTImportSource::ForgetSema() {
   m_Sema = nullptr;
 }
 
-/*bool ASTImportSource::LookupUnqualified(clang::LookupResult &R,
-                                        clang::Scope *S) {
-  return false; }
-*/
+void ASTImportSource::ImportDecl(clang::Decl *declFrom,
+                                 clang::ASTImporter &importer,
+                                 clang::DeclarationName &Name,
+                                 clang::DeclarationName &declNameI1,
+                                 const clang::DeclContext *DC) {
+
+  clang::Decl *importedDecl = nullptr;
+  /* Don't do the import if we have a Function Template.
+   * Not supported by clang. */
+  if (!(declFrom->isFunctionOrFunctionTemplate() && declFrom->isTemplateDecl()))
+    importedDecl = importer.Import(declFrom);
+
+  if(!importedDecl) {
+    std::cerr << "Error: Could not import the Decl :"
+    << Name.getAsString()
+    << std::endl;
+  } else {
+    std::cout << "Successfully imported the Decl : "
+    << Name.getAsString()
+    << std::endl;
+
+    /* Import this Decl in the map we own. */
+    m_Decls_map[Name.getAsString()] = std::make_pair(importedDecl, declFrom);
+
+    std::vector<clang::NamedDecl*> declVector;
+    declVector.push_back((clang::NamedDecl*)importedDecl);
+    llvm::ArrayRef<clang::NamedDecl*> FoundDecls(declVector);
+    SetExternalVisibleDeclsForName(DC, Name, FoundDecls);
+
+    /* And also put the Decl I found from the first Interpreter
+     * in the map of the second Interpreter to have it for the future. */
+    m_DeclName_map[Name.getAsString()] = declNameI1;
+  }
+}
+
+void ASTImportSource::ImportDeclContext(clang::DeclContext *declContextFrom,
+                                        clang::ASTImporter &importer,
+                                        clang::DeclarationName &Name,
+                                        clang::DeclarationName &declNameI1,
+                                        const clang::DeclContext *DC) {
+
+  clang::DeclContext* importedDeclContext =
+    importer.ImportContext(declContextFrom);
+
+  if(!importedDeclContext) {
+    std::cerr << "Error: Could not import Decl Context: "
+    << Name.getAsString()
+    << std::endl;
+  } else {
+    std::cout << "Successfully imported the Decl Context: "
+    << Name.getAsString()
+    << std::endl;
+
+    /* And also put the declaration context I found from the first Interpreter
+     * in the map of the second Interpreter to have it for the future. */
+    m_DeclContexts_map[importedDeclContext]= declContextFrom;
+    m_DeclContextsNames_map[Name.getAsString()] =
+      std::make_pair(importedDeclContext,declContextFrom);
+    importedDeclContext->setHasExternalVisibleStorage(true);
+
+    std::vector<clang::NamedDecl*> declVector;
+    declVector.push_back((clang::NamedDecl*)importedDeclContext);
+    llvm::ArrayRef<clang::NamedDecl*> FoundDecls(declVector);
+    //SetExternalVisibleDeclsForName(DC, Name, FoundDecls)
+
+    /* And also put the Decl I found from the first Interpreter
+     * in the map of the second Interpreter to have it for the future. */
+    m_DeclName_map[Name.getAsString()] = declNameI1;
+  }
+}
+
 bool ASTImportSource::Import(clang::DeclContext::lookup_result lookup_result,
                              clang::ASTContext &from_ASTContext,
                              clang::ASTContext &to_ASTContext,
                              const clang::DeclContext *DC,
                              clang::DeclarationName &Name,
-                             clang::DeclarationName &declNameI1){
+                             clang::DeclarationName &declNameI1) {
 
   if(lookup_result.empty()) {
     std::cout << "Did not find "
@@ -52,36 +117,10 @@ bool ASTImportSource::Import(clang::DeclContext::lookup_result lookup_result,
   /* If this Name we are looking for is for example a Namespace,
    * then it is a Decl Context. */
   if ((*lookup_result.data())->getKind() == clang::Decl::Namespace) {
-
     clang::DeclContext* declContextFrom =
       llvm::cast<clang::DeclContext>(*lookup_result.data());
-
-    clang::DeclContext* importedDeclContext =
-      importer.ImportContext(declContextFrom);
-
-    if(!importedDeclContext) {
-      std::cerr << "Error: Could not import Decl Context: "
-      << Name.getAsString()
-      << std::endl;
-    } else {
-      std::cout << "Successfully imported the Decl Context: "
-      << Name.getAsString()
-      << std::endl;
-
-      /* And also put the declaration context I found from the first Interpreter
-       * in the map of the second Interpreter to have it for the future. */
-      m_DeclContexts_map[importedDeclContext]= declContextFrom;
-      m_DeclContextsNames_map[Name.getAsString()] =
-        std::make_pair(importedDeclContext,declContextFrom);
-      importedDeclContext->setHasExternalVisibleStorage(true);
-
-      std::vector<clang::NamedDecl*> declVector;
-      declVector.push_back((clang::NamedDecl*)importedDeclContext);
-      llvm::ArrayRef<clang::NamedDecl*> FoundDecls(declVector);
-      //SetExternalVisibleDeclsForName(DC, Name, FoundDecls)
-    }
+    ImportDeclContext(declContextFrom, importer, Name, declNameI1, DC);
   } else { /* If this name is just a Decl. */
-
     /* Check if we have more than one results, this means that it
      * may be an overloaded function. */
     if (lookup_result.size() > 1) {
@@ -90,63 +129,13 @@ bool ASTImportSource::Import(clang::DeclContext::lookup_result lookup_result,
       for (I = lookup_result.begin(), E = lookup_result.end(); I != E; ++I) {
         clang::NamedDecl *D = *I;
         clang::Decl *declFrom = llvm::cast<clang::Decl>(D);
-        clang::Decl *importedDecl = nullptr;
-        /* Don't do the import if we have a Function Template.
-         * Not supported by clang. */
-        if (!(declFrom->isFunctionOrFunctionTemplate() && declFrom->isTemplateDecl())) {
-          importedDecl = importer.Import(declFrom);
-        }
-
-        if(!importedDecl) {
-          std::cerr << "Error: Could not import the Decl :"
-          << Name.getAsString()
-          << std::endl;
-        } else {
-          std::cout << "Successfully imported the Decl : "
-          << Name.getAsString()
-          << std::endl;
-
-          /* Import this Decl in the map we own. */
-          m_Decls_map[Name.getAsString()] = std::make_pair(importedDecl, declFrom);
-
-          std::vector<clang::NamedDecl*> declVector;
-          declVector.push_back((clang::NamedDecl*)importedDecl);
-          llvm::ArrayRef<clang::NamedDecl*> FoundDecls(declVector);
-          SetExternalVisibleDeclsForName(DC, Name, FoundDecls);
-        }
+        ImportDecl(declFrom, importer, Name, declNameI1, DC);
       }
     } else {
       clang::Decl *declFrom = llvm::cast<clang::Decl>(*lookup_result.data());
-      clang::Decl *importedDecl = nullptr;
-      /* Don't do the import if we have a Function Template.
-         * Not supported by clang. */
-      if (!(declFrom->isFunctionOrFunctionTemplate() && declFrom->isTemplateDecl())) {
-        importedDecl = importer.Import(declFrom);
-      }
-
-      if (!importedDecl) {
-        std::cerr << "Error: Could not import the Decl :"
-        << Name.getAsString()
-        << std::endl;
-      } else {
-        std::cout << "Successfully imported the Decl : "
-        << Name.getAsString()
-        << std::endl;
-
-        /* Import this decl in the map we own. */
-        m_Decls_map[Name.getAsString()] = std::make_pair(importedDecl, declFrom);
-
-        std::vector < clang::NamedDecl * > declVector;
-        //clang::NamedDecl *namedDeclResult = *lookup_result.data();
-        declVector.push_back((clang::NamedDecl *) importedDecl);
-        llvm::ArrayRef < clang::NamedDecl * > FoundDecls(declVector);
-        SetExternalVisibleDeclsForName(DC, Name, FoundDecls);
+      ImportDecl(declFrom, importer, Name, declNameI1, DC);
       }
     }
-  }
-  /* And also put the Decl I found from the first Interpreter
-   * in the map of the second Interpreter to have it for the future. */
-  m_DeclName_map[Name.getAsString()] = declNameI1;
   return true;
 }
 
@@ -180,12 +169,8 @@ bool ASTImportSource::FindExternalVisibleDeclsByName(const clang::DeclContext *D
   clang::IdentifierInfo &IdentifierInfoI1 = identsI1.get(name);
   clang::DeclarationName declNameI1(&IdentifierInfoI1);
 
-  if (m_DeclContextsNames_map.find(Name.getAsString()) != m_DeclContextsNames_map.end()) {
+  if (m_DeclName_map.find(Name.getAsString()) != m_DeclName_map.end()) {
     std::cout << "We have already imported this Decl (Context) before!"
-    << std::endl;
-    return true;
-  } else if (m_Decls_map.find(Name.getAsString()) != m_Decls_map.end()) {
-    std::cout << "We have already imported this Decl before!"
     << std::endl;
     return true;
   }

@@ -149,8 +149,6 @@ int main(int argc, char** argv) {
     I1.declare("template<typename X> void func(X x, int y);");
     I2.execute("func(2,2);");
 
-
-
     I1.declare("template <class T>\n"
                  "class mypair {\n"
                  "    T values [2];\n"

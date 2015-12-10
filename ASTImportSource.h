@@ -29,7 +29,7 @@ class ASTImportSource : public clang::ExternalASTSource {
   public:
     ASTImportSource(cling::Interpreter* interpreter_first,
                     cling::Interpreter* interpreter_second);
-    ~ASTImportSource();
+    ~ASTImportSource(){};
     bool
     FindExternalVisibleDeclsByName(const clang::DeclContext *DC, clang::DeclarationName Name);
     void InitializeSema(clang::Sema& S);
@@ -42,9 +42,19 @@ class ASTImportSource : public clang::ExternalASTSource {
                 clang::DeclarationName &Name,
                 clang::DeclarationName &declNameI1);
 
+    void ImportDeclContext(clang::DeclContext *declContextFrom,
+                           clang::ASTImporter &importer,
+                           clang::DeclarationName &Name,
+                           clang::DeclarationName &declNameI1,
+                           const clang::DeclContext *DC);
+
+    void ImportDecl(clang::Decl *declFrom,
+                    clang::ASTImporter &importer,
+                    clang::DeclarationName &Name,
+                    clang::DeclarationName &declNameI1,
+                    const clang::DeclContext *DC);
+
     //bool LookupUnqualified(clang::LookupResult &R, clang::Scope *S);
     cling::Interpreter* getInterpreter() { return m_first_Interp; }
-
 };
-
 #endif //CLING_ASTIMPORTSOURCE_H
