@@ -1,7 +1,8 @@
 #include "ASTImportSource.h"
+#include <dlfcn.h>
+#include <chrono>
 #include <fstream>
 #include <unistd.h>
-#include <dlfcn.h>
 
 void (*dump_)(const char *);
 
@@ -49,7 +50,6 @@ void memory_status(){
           std::cout << line << '\n';
         }
       }
-
     }
     stat_in_smaps.close();
   }else std::cout << "Unable to open /proc/self/smaps file";
@@ -143,21 +143,30 @@ int main(int argc, char** argv) {
     /*---------------------------TESTS-------------------------*/
     // I2.declare("#include <new>");
     //I2.execute("std::cout << \"Hello\" << std::endl;");
-  /*  I1.declare("template <class T>\n"
-                  "class mypair {\n"
-                  "    T values [2];\n"
-                  "  public:\n"
-                  "    mypair (T first, T second)\n"
-                  "    {\n"
-                  "      values[0]=first; values[1]=second;\n"
-                  "    }\n"
-                  "};");
+  // I1.declare("#include <iostream>");
+    I1.declare("#include <vector>");
+    I1.declare("template<typename X, typename Y> void func(X x, Y y) {};");
+    I1.declare("template<typename X> void func(X x, int y);");
+    I2.execute("func(2,2);");
 
-     I2.declare("mypair<int> *myobject;");
 
-     I1.declare("#include <iostream>");
-     I1.declare("void hello(){ "
-                  "std::cout << \"Hello I1!\" << std::endl; }");
+
+    I1.declare("template <class T>\n"
+                 "class mypair {\n"
+                 "    T values [2];\n"
+                 "  public:\n"
+                 "    mypair (T first, T second)\n"
+                 "    {\n"
+                 "      values[0]=first; values[1]=second;\n"
+                 "    }\n"
+                 "};");
+
+    I2.declare("mypair<int> *myobject;");
+    I2.declare("std::vector<int> myvec2;");
+  /*  I1.declare("std::vector<int> myvec;");
+    //
+    I2.declare("int x;");
+
 
      I1.declare("extern \"C\"{"
                    "void foo(){"
@@ -167,33 +176,21 @@ int main(int argc, char** argv) {
                    "}"
                   "}");
 
-     I1.echo("2");
-     I1.execute("hello();");
-     I1.execute("foo();");
-     I2.execute("hello();");
+    I2.declare("A a;");
+    //I2.execute("a.i=2;");
+    I1.execute("foo();");
      I2.execute("foo();");
      I1.execute("foo();");
 
-*/  I1.declare("#include <iostream>");
-    I1.declare("void hello(){ std::cout << \"hello(void)\" << std::endl; }");
-    I1.declare("void hello(int i){ std::cout << \"hello(int)\" << std::endl; }");
-    I1.execute("hello(8999)");
-    I2.execute("hello()");
-    I2.execute("hello(8);");
+     I1.declare("void hello(){ std::cout << \"hello(void)\" << std::endl; }");
+     I1.declare("void hello(int i){ std::cout << \"hello(int)\" << std::endl; }");
+     I1.execute("hello(8999)");
+     I2.execute("hello()");
+     I2.execute("hello(8);");*/
 
-    //I2.execute("hello(9);");
-    I1.echo("44");
-    //I2.execute("hello(1);");
+     I1.echo("44");
+     I2.echo("3");
 
-    I2.echo("3");
-
-    //I1.getCI()->getASTContext().getTranslationUnitDecl()->dump();
-    //I2.getCI()->getASTContext().getTranslationUnitDecl()->dump();
-   // I2.getCI()->getASTContext().dum
-    // I2.echo("1");
-    //I1.declare("#include <iostream>");
-    //I2.declare("#include <iostream>");
-    //I2.echo("gCling");
 
 /*
     I1.declare("int x=9;");
@@ -214,7 +211,7 @@ int main(int argc, char** argv) {
     I2.execute("foofoo()");
 
     I2.execute("bar()");
-    I1.execute("bar()"); /* ERROR: unresolved symbol // defined in I2 */
+    I1.execute("bar()");
     //I2.~Interpreter();*/
   } // I2 destructed here
   // I1.execute("foo_namespace::foo()"); /* something I2 was calling, but is only defined in I1 */

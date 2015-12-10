@@ -1,41 +1,17 @@
-//
-// Created by esakella on 7/8/15.
-//
-#ifndef LLVM_ASTIMPORTSOURCE_H
-#define LLVM_ASTIMPORTSOURCE_H
+#ifndef CLING_ASTIMPORTSOURCE_H
+#define CLING_ASTIMPORTSOURCE_H
 
 #include <string>
-#include <vector>
-#include <sstream>
 #include <iostream>
 #include <map>
-#include <chrono>
-//#include "cling/Interpreter/InterpreterCallbacks.h"
-#include "cling/Interpreter/Value.h"
+
 #include "cling/Interpreter/Interpreter.h"
-
 #include "clang/Frontend/CompilerInstance.h"
-#include "clang/Basic/LangOptions.h"
-#include "clang/Basic/IdentifierTable.h"
-#include "clang/Lex/Preprocessor.h"
-
-//#include "clang/Parse/RAIIObjectsForParser.h"
-#include "clang/Sema/CodeCompleteConsumer.h"
-#include "clang/Sema/CodeCompleteOptions.h"
-#include "llvm/ADT/SmallVector.h"
-#include "llvm/ADT/StringRef.h"
-#include "llvm/Support/YAMLTraits.h"
-#include "llvm/Support/Allocator.h"
-#include "cling/Interpreter/Transaction.h"
 #include "clang/Sema/Sema.h"
-#include "clang/AST/Decl.h"
-#include "clang/AST/DeclBase.h"
 #include "clang/AST/ASTContext.h"
-#include "clang/AST/DeclarationName.h"
-#include "clang/AST/ASTConsumer.h"
 #include "clang/AST/ASTImporter.h"
 
-class ASTImportSource : public clang::ExternalASTSource/*, public clang::ExternalSemaSource*/{
+class ASTImportSource : public clang::ExternalASTSource {
 
   private:
     cling::Interpreter *m_first_Interp;
@@ -45,7 +21,6 @@ class ASTImportSource : public clang::ExternalASTSource/*, public clang::Externa
     clang::DeclContext * m_TUDeclContextI1;
     clang::Sema *m_Sema;
     std::map<const clang::DeclContext*, clang::DeclContext*> m_DeclContexts_map;
-    //std::map<clang::Decl*, clang::Decl*> m_Decls_map;
     std::map<std::string, clang::DeclarationName> m_DeclName_map;
     std::map<std::string, std::pair<clang::DeclContext*, clang::DeclContext*>>
       m_DeclContextsNames_map;
@@ -64,11 +39,12 @@ class ASTImportSource : public clang::ExternalASTSource/*, public clang::Externa
                 clang::ASTContext& from_ASTContext,
                 clang::ASTContext& to_ASTContext,
                 const clang::DeclContext *DC,
-                clang::DeclarationName Name);
-    bool LookupUnqualified(clang::LookupResult &R, clang::Scope *S);
+                clang::DeclarationName &Name,
+                clang::DeclarationName &declNameI1);
+
+    //bool LookupUnqualified(clang::LookupResult &R, clang::Scope *S);
     cling::Interpreter* getInterpreter() { return m_first_Interp; }
 
-    bool GetCompleteDecl(clang::ASTContext *ast, clang::Decl *decl);
 };
 
-#endif //LLVM_ASTIMPORTSOURCE_H
+#endif //CLING_ASTIMPORTSOURCE_H
