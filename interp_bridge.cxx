@@ -160,7 +160,7 @@ int main(int argc, char** argv) {
                  "};");
 
     I2.declare("mypair<int> *myobject;");
-    I2.declare("std::vector<int> myvec2;");
+    //I2.declare("std::vector<int> myvec2;");
   /*  I1.declare("std::vector<int> myvec;");
     //
     I2.declare("int x;");

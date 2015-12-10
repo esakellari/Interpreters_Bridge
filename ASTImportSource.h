@@ -18,13 +18,20 @@ class ASTImportSource : public clang::ExternalASTSource {
     cling::Interpreter *m_second_Interp;
     const clang::TranslationUnitDecl *m_translationUnitI1;
     const clang::TranslationUnitDecl *m_translationUnitI2;
-    clang::DeclContext * m_TUDeclContextI1;
+
     clang::Sema *m_Sema;
+    /* A map for the DeclContext-to-DeclContext correspondence
+     * with DeclContexts pointers. */
     std::map<const clang::DeclContext*, clang::DeclContext*> m_DeclContexts_map;
+    /* A map for all the imported Decls (Contexts). */
     std::map<std::string, clang::DeclarationName> m_DeclName_map;
+    /* A map for the Names connected to the DeclContexts imported
     std::map<std::string, std::pair<clang::DeclContext*, clang::DeclContext*>>
       m_DeclContextsNames_map;
+    */
+    /* A map for the Names connected to the Decls imported
     std::map<std::string, std::pair<clang::Decl*, clang::Decl*>> m_Decls_map;
+     */
 
   public:
     ASTImportSource(cling::Interpreter* interpreter_first,
