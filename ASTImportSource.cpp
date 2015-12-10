@@ -36,7 +36,8 @@ void ASTImportSource::ImportDecl(clang::Decl *declFrom,
     std::vector<clang::NamedDecl*> declVector;
     declVector.push_back((clang::NamedDecl*)importedDecl);
     llvm::ArrayRef<clang::NamedDecl*> FoundDecls(declVector);
-    SetExternalVisibleDeclsForName(DC, Name, FoundDecls);
+    SetExternalVisibleDeclsForName(DC, ((clang::NamedDecl*)importedDecl)->getDeclName(),
+                                   FoundDecls);
 
     /* And also put the Decl I found from the first Interpreter
      * in the map of the second Interpreter to have it for the future. */
@@ -64,12 +65,11 @@ void ASTImportSource::ImportDeclContext(clang::DeclContext *declContextFrom,
      * */
     importedDeclContext->setHasExternalVisibleStorage(true);
 
-
     std::vector<clang::NamedDecl*> declVector;
-    clang::NamedDecl *importedNamedDecl = (clang::NamedDecl*)importedDeclContext;
     declVector.push_back((clang::NamedDecl*)importedDeclContext);
     llvm::ArrayRef<clang::NamedDecl*> FoundDecls(declVector);
-    SetExternalVisibleDeclsForName(DC, importedNamedDecl->getDeclName(), FoundDecls);
+    SetExternalVisibleDeclsForName(DC, ((clang::NamedDecl*)importedDeclContext)->getDeclName(),
+                                   FoundDecls);
 
     /* And also put the Decl I found from the first Interpreter
      * in the map of the second Interpreter to have it for the future. */

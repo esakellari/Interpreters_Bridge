@@ -143,10 +143,12 @@ int main(int argc, char** argv) {
     /*---------------------------TESTS-------------------------*/
     // I2.declare("#include <new>");
     //I2.execute("std::cout << \"Hello\" << std::endl;");
-  // I1.declare("#include <iostream>");
+    I1.declare("#include <iostream>");
     I1.declare("#include <vector>");
     I1.declare("template<typename X, typename Y> void func(X x, Y y) {};");
     I1.declare("template<typename X> void func(X x, int y);");
+    I1.declare("int x;");
+    I2.execute("x=2;");
     I2.execute("func(2,2);");
 
     I1.declare("template <class T>\n"
@@ -161,9 +163,9 @@ int main(int argc, char** argv) {
 
     I2.declare("mypair<int> *myobject;");
     //I2.declare("std::vector<int> myvec2;");
-  /*  I1.declare("std::vector<int> myvec;");
+  //  I1.declare("std::vector<int> myvec;");
     //
-    I2.declare("int x;");
+   // I2.declare("int x;");
 
 
      I1.declare("extern \"C\"{"
@@ -174,7 +176,6 @@ int main(int argc, char** argv) {
                    "}"
                   "}");
 
-    I2.declare("A a;");
     //I2.execute("a.i=2;");
     I1.execute("foo();");
      I2.execute("foo();");
@@ -184,10 +185,10 @@ int main(int argc, char** argv) {
      I1.declare("void hello(int i){ std::cout << \"hello(int)\" << std::endl; }");
      I1.execute("hello(8999)");
      I2.execute("hello()");
-     I2.execute("hello(8);");*/
+     I2.execute("hello(8);");
 
      I1.echo("44");
-     I2.echo("3");
+    I2.echo("3");
 
 
 /*
