@@ -1,7 +1,7 @@
 #include "ASTImportSource.h"
 
 using namespace cling;
-using namespace utils;
+using namespace cling::utils;
 using namespace clang;
 
 int main(int argc, char** argv) {
