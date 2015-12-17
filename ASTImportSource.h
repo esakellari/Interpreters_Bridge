@@ -56,12 +56,29 @@ namespace cling {
 
       public:
         ASTImportSource(cling::Interpreter *parent_interpreter,
-                        cling::Interpreter *child_interpreter);
+                        cling::Interpreter *child_interpreter) :
+          m_parent_Interp(parent_interpreter), m_child_Interp(child_interpreter) {
+
+          clang::ASTContext& m_parent_TUASTContext =
+            m_parent_Interp->getCI()->getASTContext();
+          clang::ASTContext& m_child_TUASTContext =
+            m_child_Interp->getCI()->getASTContext();
+
+          clang::DeclContext *parentTUDeclContext =
+            clang::TranslationUnitDecl::castToDeclContext(
+              m_parent_TUASTContext.getTranslationUnitDecl());
+
+          clang::DeclContext *childTUDeclContext =
+            clang::TranslationUnitDecl::castToDeclContext(
+              m_child_TUASTContext.getTranslationUnitDecl());
+
+          // Also keep in the map of Decl Contexts the Translation Unit Decl Context
+          m_DeclContexts_map[childTUDeclContext] = parentTUDeclContext;
+        }
 
         ~ASTImportSource() { };
 
-        bool
-          FindExternalVisibleDeclsByName(const clang::DeclContext *childCurrentDeclContext,
+        bool FindExternalVisibleDeclsByName(const clang::DeclContext *childCurrentDeclContext,
                                          clang::DeclarationName childDeclName) override;
 
         void InitializeSema(clang::Sema &S) { m_Sema = &S; }

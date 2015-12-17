@@ -75,6 +75,10 @@ int main(int argc, char** argv) {
     I2.execute("foo();");
     I1.execute("foo();");*/
 
+    I1.declare("template<typename X, typename Y> void func(X x, Y y) "
+                 "{ std::cout << \"Template function func\" << std::endl; };");
+    I1.execute("func(2,3);");
+    I2.execute("func(2,2);");
     I1.declare("void hello(){ std::cout << \"hello(void)\" << std::endl; }");
     I1.declare("void hello(int i){ std::cout << \"hello(int)\" << std::endl; }");
     I1.execute("hello(8999)");
