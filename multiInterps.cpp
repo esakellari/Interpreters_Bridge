@@ -10,16 +10,12 @@ int main(int argc, char** argv) {
   Interpreter I1(argc, argv, LLVMRESDIR);
   /*--------------------------------------------------------------------*/
 
-  IncrementalExecutor* I1IncrExecutor = I1.getIncrementalExecutor();
   {
     /*-----------------------I2 Creation----------------------------*/
-    Interpreter I2(&I1, argc, argv, LLVMRESDIR);
+    Interpreter I2(I1, argc, argv, LLVMRESDIR);
 
     TranslationUnitDecl *translationUnitDeclI2 =
       I2.getCI()->getASTContext().getTranslationUnitDecl();
-
-    if(I1IncrExecutor)
-      I2.setExternalIncrementalExecutor(I1IncrExecutor);
 
     Interpreter *I1_p = &I1;
     Interpreter *I2_p = &I2;
@@ -45,7 +41,7 @@ int main(int argc, char** argv) {
     I1.declare("#include <iostream>");
     I1.declare("#include <vector>");
     I1.declare("#include <map>");
-
+/*
     I1.declare("template<typename X, typename Y> void func(X x, Y y) {};");
     I1.declare("template<typename X> void func(X x, int y);");
     I1.declare("int x;");
@@ -77,7 +73,7 @@ int main(int argc, char** argv) {
 
     I1.execute("foo();");
     I2.execute("foo();");
-    I1.execute("foo();");
+    I1.execute("foo();");*/
 
     I1.declare("void hello(){ std::cout << \"hello(void)\" << std::endl; }");
     I1.declare("void hello(int i){ std::cout << \"hello(int)\" << std::endl; }");
