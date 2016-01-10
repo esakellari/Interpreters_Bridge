@@ -17,13 +17,12 @@ namespace cling {
       // once clang supports the import of function templates.
       if (!(declToImport->isFunctionOrFunctionTemplate() && declToImport->isTemplateDecl())) {
         if (Decl *importedDecl = importer.Import(declToImport)) {
-
-          if (NamedDecl* importedNamedDecl = llvm::dyn_cast<NamedDecl>(importedDecl)) {
+          if (NamedDecl *importedNamedDecl = llvm::dyn_cast<NamedDecl>(importedDecl)) {
             std::vector < NamedDecl * > declVector{importedNamedDecl};
             llvm::ArrayRef < NamedDecl * > FoundDecls(declVector);
-            SetExternalVisibleDeclsForName(childCurrentDeclContext,
-                                           importedNamedDecl->getDeclName(),
-                                           FoundDecls);
+            //SetExternalVisibleDeclsForName(childCurrentDeclContext,
+               //                            importedNamedDecl->getDeclName(),
+               //                            FoundDecls);
           }
           // Put the name of the Decl imported with the
           // DeclarationName coming from the parent, in  my map.
@@ -42,12 +41,13 @@ namespace cling {
 
         importedDeclContext->setHasExternalVisibleStorage(true);
 
-        if (NamedDecl* importedNamedDecl = llvm::dyn_cast<NamedDecl>(importedDeclContext)) {
+        if (NamedDecl *importedNamedDecl = llvm::dyn_cast<NamedDecl>(importedDeclContext)) {
           std::vector < NamedDecl * > declVector{importedNamedDecl};
           llvm::ArrayRef < NamedDecl * > FoundDecls(declVector);
-          SetExternalVisibleDeclsForName(childCurrentDeclContext,
-                                         importedNamedDecl->getDeclName(),
-                                         FoundDecls);
+         // SetExternalVisibleDeclsForName(childCurrentDeclContext,
+                  //                       importedNamedDecl->getDeclName(),
+                   //                      FoundDecls);
+
         }
         // Put the name of the DeclContext imported with the
         // DeclarationName coming from the parent, in  my map.
@@ -69,32 +69,31 @@ namespace cling {
       // Prepare to import the Decl(Context)  we found in the
       // child interpreter by getting the file managers from
       // each interpreter.
-      FileManager& child_FM = m_child_Interp->getCI()->getFileManager();
-      FileManager& parent_FM = m_parent_Interp->getCI()->getFileManager();
+      FileManager &child_FM = m_child_Interp->getCI()->getFileManager();
+      FileManager &parent_FM = m_parent_Interp->getCI()->getFileManager();
 
       // Clang's ASTImporter
       ASTImporter importer(to_ASTContext, child_FM,
                            from_ASTContext, parent_FM,
                            /*MinimalImport : ON*/ true);
 
-        for (DeclContext::lookup_iterator I = lookup_result.begin(),
-               E = lookup_result.end();
+      for (DeclContext::lookup_iterator I = lookup_result.begin(),
+             E = lookup_result.end();
              I != E; ++I) {
+        // Check if this Name we are looking for is
+        // a DeclContext (for example a Namespace, function etc.).
+        if (DeclContext *declContextToImport = llvm::dyn_cast<DeclContext>(*I)) {
 
-          // Check if this Name we are looking for is
-          // a DeclContext (for example a Namespace, function etc.).
-          if (DeclContext *declContextToImport = llvm::dyn_cast<DeclContext>(*I)) {
+          ImportDeclContext(declContextToImport, importer, childDeclName,
+                            parentDeclName, childCurrentDeclContext);
 
-            ImportDeclContext(declContextToImport, importer, childDeclName,
-                              parentDeclName, childCurrentDeclContext);
+        } else if (Decl *declToImport = llvm::dyn_cast<Decl>(*I)) {
 
-          } else if (Decl *declToImport = llvm::dyn_cast<Decl>(*I)) {
-
-            // else it is a Decl
-            ImportDecl(declToImport, importer, childDeclName,
-                       parentDeclName, childCurrentDeclContext);
-          }
+          // else it is a Decl
+          ImportDecl(declToImport, importer, childDeclName,
+                     parentDeclName, childCurrentDeclContext);
         }
+      }
       return true;
     }
 
@@ -109,8 +108,8 @@ namespace cling {
              "DeclContext has no visible decls in storage");
 
       // Check if we have already imported this Decl (Context).
-      if (m_DeclName_map.find(childDeclName.getAsString()) != m_DeclName_map.end())
-        return true;
+      //if (m_DeclName_map.find(childDeclName.getAsString()) != m_DeclName_map.end())
+        //return true;
 
       // Clang will call FindExternalVisibleDeclsByName with an
       // IdentifierInfo valid for the child interpreter. Get the
